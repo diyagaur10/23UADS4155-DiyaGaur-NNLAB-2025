@@ -1,0 +1,39 @@
+import numpy as np
+
+class Perceptron:
+    def _init_(self, input_size, learning_rate=0.01, epochs=100):
+        self.weights = np.zeros(input_size + 1)  # Including bias weight
+        self.learning_rate = learning_rate
+        self.epochs = epochs
+
+    def activation_function(self, x):
+        return 1 if x >= 0 else 0
+
+    def predict(self, x):
+        x = np.insert(x, 0, 1)  # Add bias term
+        return self.activation_function(np.dot(self.weights, x))
+
+    def train(self, X, y):
+        for epoch in range(self.epochs):
+            for i in range(len(X)):
+                x = np.insert(X[i], 0, 1)  # Add bias term
+                y_pred = self.activation_function(np.dot(self.weights, x))
+                self.weights += self.learning_rate * (y[i] - y_pred) * x
+
+# Example usage
+if _name_ == "_main_":
+    # Dataset: OR Gate
+    # Inputs (X) and Outputs (y)
+    X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    y = np.array([0, 1, 1, 1])
+
+    # Create a Perceptron
+    perceptron = Perceptron(input_size=2, learning_rate=0.1, epochs=10)
+
+    # Train the perceptron
+    perceptron.train(X, y)
+
+    # Test the perceptron
+    print("Trained weights:", perceptron.weights)
+    for input_data in X:
+        print(f"Input: {input_data}, Predicted Output: {perceptron.predict(input_data)}")
