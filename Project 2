@@ -1,0 +1,61 @@
+import numpy as np
+
+class MLP:
+    def __init__(self, input_size, hidden_size, output_size, learning_rate=0.01, epochs=1000):
+        self.learning_rate = learning_rate
+        self.epochs = epochs
+        
+        # Initialize weights and biases
+        self.W1 = np.random.randn(input_size, hidden_size)
+        self.b1 = np.zeros(hidden_size)
+        self.W2 = np.random.randn(hidden_size, output_size)
+        self.b2 = np.zeros(output_size)
+    
+    def relu(self, x):
+        return np.maximum(0, x)
+    
+    def relu_derivative(self, x):
+        return np.where(x > 0, 1, 0)
+    
+    def sigmoid(self, x):
+        return 1 / (1 + np.exp(-x))
+    
+    def sigmoid_derivative(self, x):
+        return x * (1 - x)
+    
+    def fit(self, X, y):
+        for _ in range(self.epochs):
+            # Forward pass
+            hidden_input = np.dot(X, self.W1) + self.b1
+            hidden_output = self.relu(hidden_input)
+            final_input = np.dot(hidden_output, self.W2) + self.b2
+            final_output = self.sigmoid(final_input)
+            
+            # Backpropagation
+            error = y - final_output
+            d_output = error * self.sigmoid_derivative(final_output)
+            error_hidden = d_output.dot(self.W2.T)
+            d_hidden = error_hidden * self.relu_derivative(hidden_output)
+            
+            # Update weights and biases
+            self.W2 += hidden_output.T.dot(d_output) * self.learning_rate
+            self.b2 += np.sum(d_output, axis=0) * self.learning_rate
+            self.W1 += X.T.dot(d_hidden) * self.learning_rate
+            self.b1 += np.sum(d_hidden, axis=0) * self.learning_rate
+    
+    def predict(self, X):
+        hidden_input = np.dot(X, self.W1) + self.b1
+        hidden_output = self.relu(hidden_input)
+        final_input = np.dot(hidden_output, self.W2) + self.b2
+        return self.sigmoid(final_input)
+
+
+if __name__ == "__main__":
+    X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    y = np.array([[0], [1], [1], [0]])  # XOR problem
+    
+    mlp = MLP(input_size=2, hidden_size=4, output_size=1, learning_rate=0.1, epochs=10000)
+    mlp.fit(X, y)
+    
+    predictions = mlp.predict(X)
+    print("Predictions:", predictions)
