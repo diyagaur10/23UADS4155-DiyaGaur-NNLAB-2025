@@ -2,15 +2,11 @@ import tensorflow as tf
 import numpy as np
 from tensorflow.python.framework.ops import disable_eager_execution
 
-disable_eager_execution()  # Disable eager execution to use TensorFlow's graph execution
+disable_eager_execution()  # Disable eager execution for graph execution
 
 # Load MNIST dataset
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 x_train, x_test = x_train.reshape(-1, 784) / 255.0, x_test.reshape(-1, 784) / 255.0
-
-# Convert labels to one-hot encoding
-y_train = np.eye(10)[y_train]
-y_test = np.eye(10)[y_test]
 
 # Define model hyperparameters
 input_size = 784
@@ -23,7 +19,7 @@ epochs = 20
 
 # Define placeholders for input and output
 X = tf.compat.v1.placeholder(tf.float32, [None, input_size])
-y = tf.compat.v1.placeholder(tf.float32, [None, output_size])
+y = tf.compat.v1.placeholder(tf.int32, [None])  # Labels remain as integers
 
 # Initialize weights and biases
 weights = {
@@ -48,14 +44,14 @@ def neural_network(X):
 # Compute logits
 logits = neural_network(X)
 
-# Define loss function (cross-entropy)
-loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=logits))
+# Define loss function (sparse categorical cross-entropy)
+loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=logits))
 
 # Define optimizer
 optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
 
 # Define accuracy metric
-correct_pred = tf.equal(tf.argmax(logits, 1), tf.argmax(y, 1))
+correct_pred = tf.equal(tf.argmax(logits, 1), tf.cast(y, tf.int64))
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
 # Run session
