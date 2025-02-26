@@ -1,6 +1,9 @@
 import tensorflow as tf
 import numpy as np
 from tensorflow.python.framework.ops import disable_eager_execution
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
 
 disable_eager_execution()  # Disable eager execution for graph execution
 
@@ -77,3 +80,43 @@ with tf.compat.v1.Session() as sess:
     print(f"Final Test Accuracy: {final_test_acc*100:.2f}")
     
     print("Training Complete!")
+
+
+#confusion matrix
+y_pred = tf.argmax(logits, 1)
+with tf.compat.v1.Session() as sess:
+    sess.run(tf.compat.v1.global_variables_initializer())
+    y_pred_test = sess.run(y_pred, feed_dict={X: x_test})
+    
+cm = confusion_matrix(y_test, y_pred_test)
+
+plt.figure(figsize=(8,6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.title("Confusion Matrix")
+plt.show()
+
+
+#loss curve
+
+epochs_list = range(1, 21)
+train_loss_list = []  # Store loss values per epoch
+
+with tf.compat.v1.Session() as sess:
+    sess.run(tf.compat.v1.global_variables_initializer())
+    for epoch in epochs_list:
+        for i in range(0, len(x_train), batch_size):
+            batch_x, batch_y = x_train[i:i+batch_size], y_train[i:i+batch_size]
+            _, loss_val = sess.run([optimizer, loss], feed_dict={X: batch_x, y: batch_y})
+        train_loss_list.append(loss_val)
+
+plt.plot(epochs_list, train_loss_list, marker='o', label="Training Loss")
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.title("Loss Curve")
+plt.legend()
+plt.show()
+
+
+
